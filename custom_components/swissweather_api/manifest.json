@@ -1,0 +1,11 @@
+{
+    "domain": "swissweather_api",
+    "name": "SwissWeather API",
+    "version": "1.0.0",
+    "documentation": "",
+    "dependencies": [],
+    "codeowners": ["ItsEcholot"],
+    "config_flow": true,
+    "requirements": [],
+    "iot_class": "cloud_polling"
+  }

@@ -1,0 +1,22 @@
+{
+    "config": {
+        "abort": {
+            "unknown": "Unknown Error"
+        },
+        "error": {
+            "invalid_api_key_or_sig_salt": "API key or Signature Salt invalid",
+            "invalid_zip_code": "Invalid ZIP code, this integration only works with swiss (4 digit) zip codes"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "zip_code": "ZIP Code",
+                    "api_key": "SwissWeather API Key",
+                    "sig_salt": "SwissWeather API Signature Salt"
+                },
+                "description": "Enter the postal code and the station name",
+                "title": "SwissWeather API"
+            }
+        }
+    }
+}
