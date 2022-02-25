@@ -4,8 +4,11 @@
     "version": "1.0.0",
     "documentation": "",
     "dependencies": [],
-    "codeowners": ["ItsEcholot"],
+    "codeowners": ["@ItsEcholot"],
     "config_flow": true,
     "requirements": [],
+    "ssdp": [],
+    "zeroconf": [],
+    "homekit": {},
     "iot_class": "cloud_polling"
   }

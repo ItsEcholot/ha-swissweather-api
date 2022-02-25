@@ -51,7 +51,7 @@ class SwissWeatherAPIFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             if await self.validate_config(user_input):
                 return self.async_create_entry(
-                    title=user_input[CONF_ZIP_CODE], data=user_input
+                    title=f"{user_input[CONF_ZIP_CODE]}", data=user_input
                 )
             return self._show_config_form(user_input)
 
