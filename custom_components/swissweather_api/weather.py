@@ -43,7 +43,6 @@ class SwissWeatherAPIWeather(WeatherEntity):
 
     def update(self):
         """Update Condition and Forecast."""
-        _LOGGER.warning("Updating SwissWeatherAPI weather data")
         self._client.update()
         self._weather_data = self._client.get_weather_data()
 
@@ -128,7 +127,7 @@ class SwissWeatherAPIWeather(WeatherEntity):
         out_entry = {}
         out_entry["datetime"] = datetime.datetime.utcfromtimestamp(
             int(entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000)
-        ).isoformat()
+        ).astimezone().isoformat()
         out_entry["temperature"] = entry.get(WEATHER_DATA_TEMPERATURE)
         out_entry["condition"] = next(
             (
