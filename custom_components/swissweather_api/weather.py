@@ -31,7 +31,7 @@ async def async_setup_entry(hass, config, async_add_entities):
     client = hass.data[DOMAIN][HASS_DATA_CLIENT]
     tz = hass.config.time_zone
     zip = config.data[CONF_ZIP_CODE]
-    async_add_entities([SwissWeatherAPIWeather(client, zip)], True)
+    async_add_entities([SwissWeatherAPIWeather(client, zip, tz)], True)
 
 
 class SwissWeatherAPIWeather(WeatherEntity):
