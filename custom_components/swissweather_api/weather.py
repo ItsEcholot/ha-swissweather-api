@@ -29,6 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config, async_add_entities):
     client = hass.data[DOMAIN][HASS_DATA_CLIENT]
+    tz = hass.config.time_zone
     zip = config.data[CONF_ZIP_CODE]
     async_add_entities([SwissWeatherAPIWeather(client, zip)], True)
 
@@ -36,10 +37,11 @@ async def async_setup_entry(hass, config, async_add_entities):
 class SwissWeatherAPIWeather(WeatherEntity):
     """Implements weather entity."""
 
-    def __init__(self, client: SwissWeatherAPIClient, plz: int):
+    def __init__(self, client: SwissWeatherAPIClient, plz: int, tz: datetime.tzinfo):
         self._client = client
         self._display_name = f"SwissWeatherAPI - {plz}"
         self._weather_data = None
+        self._timezone = tz
 
     def update(self):
         """Update Condition and Forecast."""
@@ -127,7 +129,7 @@ class SwissWeatherAPIWeather(WeatherEntity):
         out_entry = {}
         out_entry["datetime"] = datetime.datetime.utcfromtimestamp(
             int(entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000)
-        ).astimezone().isoformat()
+        ).astimezone(tz=self._timezone).isoformat()
         out_entry["temperature"] = entry.get(WEATHER_DATA_TEMPERATURE)
         out_entry["condition"] = next(
             (
