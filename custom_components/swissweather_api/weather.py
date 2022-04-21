@@ -1,7 +1,7 @@
 """Defines the weather component entity."""
 
 import logging
-import datetime
+import datetime, pytz
 from homeassistant.components.weather import Forecast, WeatherEntity
 from .swiss_weather_api_client import SwissWeatherAPIClient
 from .const import (
@@ -29,19 +29,19 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, config, async_add_entities):
     client = hass.data[DOMAIN][HASS_DATA_CLIENT]
-    tz = hass.config.time_zone
+    timezone = hass.config.time_zone
     zip = config.data[CONF_ZIP_CODE]
-    async_add_entities([SwissWeatherAPIWeather(client, zip, tz)], True)
+    async_add_entities([SwissWeatherAPIWeather(client, zip, timezone)], True)
 
 
 class SwissWeatherAPIWeather(WeatherEntity):
     """Implements weather entity."""
 
-    def __init__(self, client: SwissWeatherAPIClient, plz: int, tz: datetime.tzinfo):
+    def __init__(self, client: SwissWeatherAPIClient, plz: int, timezone: str):
         self._client = client
         self._display_name = f"SwissWeatherAPI - {plz}"
         self._weather_data = None
-        self._timezone = tz
+        self._timezone = timezone
 
     def update(self):
         """Update Condition and Forecast."""
@@ -127,9 +127,13 @@ class SwissWeatherAPIWeather(WeatherEntity):
     def create_forecast_entry(self, entry):
         """Converts the SwissWeatherAPI Forecast entry to the HomeAssistant format"""
         out_entry = {}
-        out_entry["datetime"] = datetime.datetime.utcfromtimestamp(
-            int(entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000)
-        ).astimezone(tz=self._timezone).isoformat()
+        out_entry["datetime"] = (
+            datetime.datetime.utcfromtimestamp(
+                int(entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000)
+            )
+            .astimezone(tz=pytz.timezone(self._timezone))
+            .isoformat()
+        )
         out_entry["temperature"] = entry.get(WEATHER_DATA_TEMPERATURE)
         out_entry["condition"] = next(
             (
