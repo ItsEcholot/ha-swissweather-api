@@ -121,19 +121,17 @@ class SwissWeatherAPIWeather(WeatherEntity):
     def forecast(self) -> list[Forecast]:
         return map(
             self.create_forecast_entry,
-            self._weather_data.get(WEATHER_DATA_FORECAST_WEATHER, []),
+            self._weather_data.get(WEATHER_DATA_FORECAST_WEATHER, [])[1:],
         )
 
     def create_forecast_entry(self, entry):
         """Converts the SwissWeatherAPI Forecast entry to the HomeAssistant format"""
         out_entry = {}
-        out_entry["datetime"] = (
+        out_entry["datetime"] = pytz.utc.localize(
             datetime.datetime.utcfromtimestamp(
-                int(entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000)
+                entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000
             )
-            .astimezone(tz=pytz.timezone(self._timezone))
-            .isoformat()
-        )
+        ).isoformat()
         out_entry["temperature"] = entry.get(WEATHER_DATA_TEMPERATURE)
         out_entry["condition"] = next(
             (
