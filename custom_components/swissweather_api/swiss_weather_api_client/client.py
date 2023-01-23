@@ -37,6 +37,7 @@ class SwissWeatherAPIClient:
                 f"{SWA_ZIP_CODE_WEATHER_BASE_PATH}/{self._zip_code}"
             ),
             headers={"If-None-Match": self._weather_data_etag},
+            timeout=30,
         )
         if (
             request.status_code == 503
@@ -67,7 +68,8 @@ class SwissWeatherAPIClient:
     def get_zip_code_by_lat_lon(self, lat, lon):
         """Fetch and return zip code from coordinates (lat/lon)."""
         request = requests.get(
-            self.__prepare_request_url(f"{SWA_LOCATION_SEARCH_LAT_LON}/{lat}/{lon}")
+            self.__prepare_request_url(f"{SWA_LOCATION_SEARCH_LAT_LON}/{lat}/{lon}"),
+            timeout=30,
         )
         request.raise_for_status()
         return request.json().get("plz")

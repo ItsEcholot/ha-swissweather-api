@@ -1,8 +1,15 @@
 """Defines the weather component entity."""
 
 import logging
-import datetime, pytz
+import datetime
+import pytz
 from homeassistant.components.weather import Forecast, WeatherEntity
+from homeassistant.const import (
+    UnitOfPrecipitationDepth,
+    UnitOfPressure,
+    UnitOfSpeed,
+    UnitOfTemperature,
+)
 from .swiss_weather_api_client import SwissWeatherAPIClient
 from .const import (
     CONF_ZIP_CODE,
@@ -17,6 +24,7 @@ from .const import (
     WEATHER_DATA_SYMBOL,
     WEATHER_DATA_SYMBOL_CONDITION_MAP,
     WEATHER_DATA_TEMPERATURE,
+    WEATHER_DATA_TEMPERATURE_MIN,
     WEATHER_DATA_WIND_BEARING,
     WEATHER_DATA_WIND_SPEED,
     WEATHER_FORECAST_PRECIPITATION,
@@ -30,14 +38,19 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config, async_add_entities):
     client = hass.data[DOMAIN][HASS_DATA_CLIENT]
     timezone = hass.config.time_zone
-    zip = config.data[CONF_ZIP_CODE]
-    async_add_entities([SwissWeatherAPIWeather(client, zip, timezone)], True)
+    configured_zip = config.data[CONF_ZIP_CODE]
+    async_add_entities([SwissWeatherAPIWeather(client, configured_zip, timezone)], True)
 
 
 class SwissWeatherAPIWeather(WeatherEntity):
     """Implements weather entity."""
 
-    def __init__(self, client: SwissWeatherAPIClient, plz: int, timezone: str):
+    _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    _attr_native_pressure_unit = UnitOfPressure.HPA
+    _attr_native_precipitation_unit = UnitOfPrecipitationDepth.MILLIMETERS
+    _attr_native_wind_speed_unit = UnitOfSpeed.KILOMETERS_PER_HOUR
+
+    def __init__(self, client: SwissWeatherAPIClient, plz: int, timezone: str) -> None:
         self._client = client
         self._display_name = f"SwissWeatherAPI - {plz}"
         self._weather_data = None
@@ -68,24 +81,16 @@ class SwissWeatherAPIWeather(WeatherEntity):
         return condition
 
     @property
-    def temperature(self):
+    def native_temperature(self) -> float:
         return self._weather_data.get(WEATHER_DATA_CUR_WEATHER, {}).get(
             WEATHER_DATA_TEMPERATURE
         )
 
     @property
-    def temperature_unit(self) -> str:
-        return "°C"
-
-    @property
-    def pressure(self) -> float:
+    def native_pressure(self) -> float:
         return self._weather_data.get(WEATHER_DATA_CUR_WEATHER, {}).get(
             WEATHER_DATA_PRESSURE
         )
-
-    @property
-    def pressure_unit(self) -> str:
-        return "hPa"
 
     @property
     def humidity(self) -> float:
@@ -102,14 +107,10 @@ class SwissWeatherAPIWeather(WeatherEntity):
         )
 
     @property
-    def wind_speed(self) -> float:
+    def native_wind_speed(self) -> float:
         return self._weather_data.get(WEATHER_DATA_CUR_WEATHER, {}).get(
             WEATHER_DATA_WIND_SPEED
         )
-
-    @property
-    def wind_speed_unit(self) -> str:
-        return "km/h"
 
     @property
     def wind_bearing(self) -> float:
@@ -132,7 +133,8 @@ class SwissWeatherAPIWeather(WeatherEntity):
                 entry.get(WEATHER_FORECAST_TIMESTAMP, 0) / 1000
             )
         ).isoformat()
-        out_entry["temperature"] = entry.get(WEATHER_DATA_TEMPERATURE)
+        out_entry["native_temperature"] = entry.get(WEATHER_DATA_TEMPERATURE)
+        out_entry["native_templow"] = entry.get(WEATHER_DATA_TEMPERATURE_MIN)
         out_entry["condition"] = next(
             (
                 k
@@ -141,11 +143,11 @@ class SwissWeatherAPIWeather(WeatherEntity):
             ),
             None,
         )
-        out_entry["precipitation"] = entry.get(WEATHER_FORECAST_PRECIPITATION)
+        out_entry["native_precipitation"] = entry.get(WEATHER_FORECAST_PRECIPITATION)
         out_entry["precipitation_probability"] = entry.get(
             WEATHER_FORECAST_PRECIPITATION_PROBABILITY
         )
-        out_entry["pressure"] = entry.get(WEATHER_DATA_PRESSURE)
+        out_entry["native_pressure"] = entry.get(WEATHER_DATA_PRESSURE)
         out_entry["wind_bearing"] = entry.get(WEATHER_DATA_WIND_BEARING)
-        out_entry["wind_speed"] = entry.get(WEATHER_DATA_WIND_SPEED)
+        out_entry["native_wind_speed"] = entry.get(WEATHER_DATA_WIND_SPEED)
         return out_entry
